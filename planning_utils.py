@@ -174,7 +174,7 @@ def collinearity_float(p1, p2, p3, epsilon=1e-6) -> bool:
 
 def collinearity_check(path: List[Tuple[int, int]], epsilon: float):
     yield False # The first point shall not be purged
-    for i, p in enumerate(path[1:-1]):
+    for i in range(len(path)-2):
         p1 = path[i]
         p2 = path[i+1]
         p3 = path[i+2]
