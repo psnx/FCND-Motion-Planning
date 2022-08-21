@@ -1,4 +1,5 @@
 import argparse
+from nntplib import GroupInfo
 from operator import delitem
 import time
 import msgpack
@@ -6,7 +7,7 @@ from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils import a_star, heuristic, create_grid
+from planning_utils import a_star, heuristic, create_grid, prune, set_valid_goal_around_target
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
@@ -153,10 +154,21 @@ class MotionPlanning(Drone):
         grid_start = (local_position[0] - north_offset, local_position[1] - east_offset)
         
         # Set goal as some arbitrary position on the grid
-        grid_goal = (-north_offset + 100, -east_offset + 100)
+        grid_goal = (-north_offset - 30, -east_offset + 25)
+
+        #global_goal = (122.397450, 37.792480, 0)
+
+        #local_goal = [int(x) for x in global_to_local(global_position=(*global_goal, 0), global_home= self.global_home)]
+        #grid_goal = local_goal
+
+        #print("Grid goal ", local_goal)
+
+        print("Specified golal", grid[grid_goal])
+            
         # TODO: adapt to set goal as latitude / longitude position and convert
 
         #global_goal = local_to_global((*grid_goal, 0), self.global_home)
+        grid_goal = set_valid_goal_around_target(grid, 316, 133)
         #print("global goal", global_goal)
 
         # Run A* to find a path from start to goal
@@ -166,10 +178,12 @@ class MotionPlanning(Drone):
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         print("found path:", path)
         # TODO: prune path to minimize number of waypoints
+        path2 = prune(path)
+
         # TODO (if you're feeling ambitious): Try a different approach altogether!
 
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
+        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path2]
         print("Waypoints:", waypoints)
         # Set self.waypoints
         self.waypoints = waypoints

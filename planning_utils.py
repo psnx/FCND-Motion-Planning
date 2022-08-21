@@ -1,5 +1,8 @@
 from enum import Enum
 from queue import PriorityQueue
+from selectors import EpollSelector
+from typing import List, Tuple
+from xmlrpc.client import Boolean
 import numpy as np
 
 
@@ -160,3 +163,36 @@ def a_star(grid, h, start, goal):
 def heuristic(position, goal_position):
     return np.linalg.norm(np.array(position) - np.array(goal_position))
 
+
+def Point(p):
+    return np.array([p[0], p[1], 1.])
+
+def collinearity_float(p1, p2, p3, epsilon=1e-6) -> bool: 
+    mat = np.vstack((Point(p1), Point(p2), Point(p3)))
+    det = np.linalg.det(mat)
+    return abs(det) < epsilon
+
+def collinearity_check(path: List[Tuple[int, int]], epsilon: float):
+    yield False # The first point shall not be purged
+    for i, p in enumerate(path[1:-1]):
+        p1 = path[i]
+        p2 = path[i+1]
+        p3 = path[i+2]
+        print("points", p1, p2, p3)
+        print("coll:", collinearity_float(p1, p2, p3, epsilon))
+        yield collinearity_float(p1, p2, p3, epsilon)
+    yield False # the last point should not be purged
+
+def prune(path: List[Tuple[int, int]]):
+    new_path = [ p for p, c in zip(path, collinearity_check(path, epsilon=1e-10)) if not c ]
+    print("after prune new path: ", new_path)
+    return new_path
+
+def set_valid_goal_around_target(grid, pos0: int, pos1: int, r = 20):
+    print("grid at pos", grid[pos0, pos1])
+    a, b = pos0, pos1
+    while grid[a, b] > 0.0:
+        a = np.random.randint(pos0 - r, pos0 + r)
+        b = np.random.randint(pos1 - r, pos1 + r)
+    print("goal ", a, b)
+    return (a, b)
