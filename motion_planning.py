@@ -1,4 +1,5 @@
 import argparse
+from math import ceil, trunc
 from nntplib import GroupInfo
 from operator import delitem
 import time
@@ -130,12 +131,10 @@ class MotionPlanning(Drone):
         lat0 = float(re.search(r"(?<=lat0 )(.+)(?=,)", line).group(0).strip())
         lon0 = float(re.search(r"(?<=lon0 )(.+)", line).group(0).strip())
 
-        print ("lat0", lat0)
-        print ("lon0", lon0)
-
         # DONE: set home position to (lon0, lat0, 0)
         self.set_home_position(lon0, lat0, 0.0)
 
+        #lat0 37.792480, lon0 -122.397450
         # DONE: retrieve current global position
         # DONE: convert to current local position using global_to_local()
         local_position =tuple([int(x) for x in global_to_local(self.global_position, self.global_home)])
@@ -156,34 +155,27 @@ class MotionPlanning(Drone):
         # Set goal as some arbitrary position on the grid
         grid_goal = (-north_offset - 30, -east_offset + 25)
 
-        #global_goal = (122.397450, 37.792480, 0)
-
-        #local_goal = [int(x) for x in global_to_local(global_position=(*global_goal, 0), global_home= self.global_home)]
-        #grid_goal = local_goal
-
-        #print("Grid goal ", local_goal)
-
         print("Specified golal", grid[grid_goal])
             
         # TODO: adapt to set goal as latitude / longitude position and convert
 
         #global_goal = local_to_global((*grid_goal, 0), self.global_home)
-        grid_goal = set_valid_goal_around_target(grid, 316, 133)
+        grid_goal = set_valid_goal_around_target(grid, 50, 350)
         #print("global goal", global_goal)
 
         # Run A* to find a path from start to goal
-        # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
+        # DONE: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
         print('Local Start and Goal: ', grid_start, grid_goal)
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         print("found path:", path)
-        # TODO: prune path to minimize number of waypoints
-        path2 = prune(path)
+        # DONE: prune path to minimize number of waypoints
+        purged_path = prune(path)
 
         # TODO (if you're feeling ambitious): Try a different approach altogether!
 
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path2]
+        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in purged_path]
         print("Waypoints:", waypoints)
         # Set self.waypoints
         self.waypoints = waypoints
@@ -207,7 +199,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=5760, help='Port number')
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
-    parser.add_argument('-g','--global-goal', type=float,  default=[-122.401289, 37.796751, 0.0], help="Goal global coordinates (longitude, latitude, altitude), i.e. '-122.401289 37.796751 0.0'")
+    parser.add_argument('-g','--global-goal', type=float,  default=[-122.401282, 37.796749, 0.0], help="Goal's global coordinates (longitude, latitude, altitude), i.e. '-122.401289 37.796751 0.0'")
     args = parser.parse_args()
 
     conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=60)

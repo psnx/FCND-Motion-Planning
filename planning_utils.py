@@ -178,13 +178,11 @@ def collinearity_check(path: List[Tuple[int, int]], epsilon: float):
         p1 = path[i]
         p2 = path[i+1]
         p3 = path[i+2]
-        print("points", p1, p2, p3)
-        print("coll:", collinearity_float(p1, p2, p3, epsilon))
         yield collinearity_float(p1, p2, p3, epsilon)
     yield False # the last point should not be purged
 
-def prune(path: List[Tuple[int, int]]):
-    new_path = [ p for p, c in zip(path, collinearity_check(path, epsilon=1e-10)) if not c ]
+def prune(path: List[Tuple[int, int]], epsilon=1e-6):
+    new_path = [ p for p, c in zip(path, collinearity_check(path, epsilon)) if not c ]
     print("after prune new path: ", new_path)
     return new_path
 
