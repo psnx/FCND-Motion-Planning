@@ -63,5 +63,11 @@ new_path = [ p for p, c in zip(path, collinearity_check(path, epsilon)) if not c
 ```
 This method is not able to cull the sometimes unnecessary wigling when the drone traverses a distance in the likness of a knigh's move (L-shape). 
 
+#### It works
+On the way
+![En Route](misc/enroute.png)
+
+Landed at the destination
+![En Route](misc/landed.png)
 
 

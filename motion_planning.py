@@ -146,14 +146,25 @@ class MotionPlanning(Drone):
         
         # Define a grid for a particular altitude and safety margin around obstacles
         grid, north_offset, east_offset = create_grid(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
+
+
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
         grid_start = (-north_offset, -east_offset)
         # TODO: convert start position to current position rather than map center
-        grid_start = (local_position[0] - north_offset, local_position[1] - east_offset)
         
+        latitude_g =  37.793837
+        longitude_g = -122.397745
+
+        g_global = [ longitude_g , latitude_g , 0]
+        g_local = global_to_local (g_global,self.global_home)
+
+        north_g = int(g_local[0])
+        east_g = int(g_local[1])
+
+        grid_goal = ( (north_g - north_offset)  , (east_g - east_offset) )                     
+
         # Set goal as some arbitrary position on the grid
-        grid_goal = (-north_offset - 30, -east_offset + 25)
 
         print("Specified golal", grid[grid_goal])
             
